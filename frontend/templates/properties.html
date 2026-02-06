@@ -1,0 +1,23 @@
+<table>
+    <thead>
+        <tr>
+            <th>Property</th>
+            <th>Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range $key, $value := .}}
+        <tr>
+            <td>{{$key}}</td>
+            <td>
+                <input type="hidden" name="propertie" value="{{$key}}">
+                <input type="text" id="{{$key}}" name="value" placeholder="{{$value}}" 
+                       hx-post="/properties/set" 
+                       hx-include="previous input[name='propertie']" 
+                       hx-trigger="blur"
+                       onkeydown="if(event.key === 'Enter') this.blur()">
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
