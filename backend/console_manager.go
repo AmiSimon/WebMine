@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"os/exec"
 	"sync"
@@ -37,11 +36,11 @@ type HTMXMessage struct {
 }
 
 func (mc *McServer) Start() error {
-	log.Println("Attempting to start Minecraft server")
+	fmt.Println("Attempting to start Minecraft server")
 	mc.mu.Lock()
 	if mc.active {
 		mc.mu.Unlock()
-		log.Println("Server start failed: already running")
+		fmt.Println("Server start failed: already running")
 		if mc.ws != nil {
 			mc.ws.WriteMessage(websocket.TextMessage, []byte("Server already running!"))
 		}
@@ -61,26 +60,26 @@ func (mc *McServer) Start() error {
 	cmd.Dir = PathToMcServer
 	mc.cmd = cmd
 
-	log.Printf("Executing command: %s %s in directory %s", command, arg1, PathToMcServer)
+	fmt.Printf("Executing command: %s %s in directory %s", command, arg1, PathToMcServer)
 
 	// Pipes from cmd
 	stdout, err := mc.cmd.StdoutPipe()
 	if err != nil {
-		log.Printf("Error getting stdout pipe: %v", err)
+		fmt.Printf("Error getting stdout pipe: %v", err)
 		mc.active = false
 		return err
 	}
 
 	stderr, err := mc.cmd.StderrPipe()
 	if err != nil {
-		log.Printf("Error getting stderr pipe: %v", err)
+		fmt.Printf("Error getting stderr pipe: %v", err)
 		mc.active = false
 		return err
 	}
 
 	stdin, err := mc.cmd.StdinPipe()
 	if err != nil {
-		log.Printf("Error getting stdin pipe: %v", err)
+		fmt.Printf("Error getting stdin pipe: %v", err)
 		mc.active = false
 		return err
 	}
@@ -88,25 +87,24 @@ func (mc *McServer) Start() error {
 
 	// Run the Command
 	if err := mc.cmd.Start(); err != nil {
-		log.Printf("Error starting server: %v", err)
+		fmt.Printf("Error starting server: %v", err)
 		mc.active = false
 		return err
 	}
 
-	log.Println("Minecraft server process started successfully")
+	fmt.Println("Minecraft server process started successfully")
 
 	// Pipe stdout to websocket
 	go func() {
 		scanner := bufio.NewScanner(stdout)
 		for scanner.Scan() {
 			text := scanner.Text()
-			log.Printf("[MC-STDOUT] %s", text)
 			if mc.ws != nil {
 				mc.ws.WriteMessage(websocket.TextMessage, []byte(text))
 			}
 		}
 		if err := scanner.Err(); err != nil {
-			log.Printf("Error reading stdout: %v", err)
+			fmt.Printf("Error reading stdout: %v", err)
 		}
 	}()
 
@@ -115,13 +113,13 @@ func (mc *McServer) Start() error {
 		scanner := bufio.NewScanner(stderr)
 		for scanner.Scan() {
 			text := scanner.Text()
-			log.Printf("[MC-STDERR] %s", text)
+			fmt.Printf("[MC-STDERR] %s", text)
 			if mc.ws != nil {
 				mc.ws.WriteMessage(websocket.TextMessage, []byte(text))
 			}
 		}
 		if err := scanner.Err(); err != nil {
-			log.Printf("Error reading stderr: %v", err)
+			fmt.Printf("Error reading stderr: %v", err)
 		}
 	}()
 
@@ -133,9 +131,9 @@ func (mc *McServer) Start() error {
 		mc.mu.Unlock()
 
 		if err != nil {
-			log.Printf("Server process exited with error: %v", err)
+			fmt.Printf("Server process exited with error: %v", err)
 		} else {
-			log.Println("Server process exited normally")
+			fmt.Println("Server process exited normally")
 		}
 		if mc.ws != nil {
 			mc.ws.WriteMessage(websocket.TextMessage, []byte("[Server stopped]"))
@@ -150,41 +148,54 @@ func (mc *McServer) Stop() error {
 	defer mc.mu.Unlock()
 
 	if !mc.active {
-		log.Println("Cannot stop server: not running")
+		fmt.Println("Cannot stop server: not running")
 		return fmt.Errorf("server not running")
 	}
 
-	log.Println("Stopping Minecraft server...")
+	fmt.Println("Stopping Minecraft server...")
 
 	_, err := mc.stdin.WriteString("stop\n")
 	if err != nil {
-		log.Printf("Error writing stop command: %v", err)
+		fmt.Printf("Error writing stop command: %v", err)
 		return err
 	}
 
 	if err := mc.stdin.Flush(); err != nil {
-		log.Printf("Error flushing stop command: %v", err)
+		fmt.Printf("Error flushing stop command: %v", err)
 		return err
 	}
 
-	log.Println("Stop command sent successfully")
+	fmt.Println("Stop command sent successfully")
 	return nil
 }
 
 func (mc *McServer) Restart() error {
+	mc.mu.Lock()
 	if !mc.active {
-		log.Println("Cannot Restart server: not running, Starting Server")
-		if err := mcServer.Stop(); err != nil {
-			log.Printf("Failed to start server: %v", err)
-			return err
-		}
-		if err := mcServer.Start(); err != nil {
-			log.Printf("Failed to start server: %v", err)
-			return err
-		}
+		mc.mu.Unlock()
+		fmt.Println("Server not running, starting ...")
+		return mc.Start()
+	}
+	mc.mu.Unlock()
+
+	fmt.Println("Restarting Minecraft server...")
+
+	if err := mc.Stop(); err != nil {
+		fmt.Printf("Failed to stop server: %v", err)
+		return err
 	}
 
-	log.Println("Restarting Minecraft server...")
+	if mc.cmd != nil && mc.cmd.Process != nil {
+		mc.cmd.Wait()
+		fmt.Println("Server process has fully stopped")
+	}
+
+	if err := mc.Start(); err != nil {
+		fmt.Printf("Failed to start server: %v", err)
+		return err
+	}
+
+	fmt.Println("Minecraft server restarted successfully")
 	return nil
 }
 
@@ -193,26 +204,26 @@ func (mc *McServer) SendCommand(command string) error {
 	defer mc.mu.Unlock()
 
 	if !mc.active {
-		log.Printf("Cannot send command '%s': server not running", command)
+		fmt.Printf("Cannot send command '%s': server not running", command)
 		return fmt.Errorf("server not running")
 	}
 
-	log.Printf("Sending command to MC server: %s", command)
+	fmt.Printf("Sending command to MC server: %s", command)
 
 	// write command for minecraft input
 	_, err := mc.stdin.WriteString(command + "\n")
 	if err != nil {
-		log.Printf("Error writing command: %v", err)
+		fmt.Printf("Error writing command: %v", err)
 		return err
 	}
 
 	// send now
 	if err := mc.stdin.Flush(); err != nil {
-		log.Printf("Error flushing command: %v", err)
+		fmt.Printf("Error flushing command: %v", err)
 		return err
 	}
 
-	log.Printf("Command sent successfully: %s", command)
+	fmt.Printf("Command sent successfully: %s", command)
 	return nil
 }
 
@@ -223,16 +234,16 @@ func (mc *McServer) SetWebSocket(ws *websocket.Conn) {
 }
 
 func WsHandler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("New WebSocket connection from %s", r.RemoteAddr)
+	fmt.Printf("New WebSocket connection from %s", r.RemoteAddr)
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Printf("WebSocket upgrade error from %s: %v", r.RemoteAddr, err)
+		fmt.Printf("WebSocket upgrade error from %s: %v", r.RemoteAddr, err)
 		return
 	}
 	defer func() {
 		ws.Close()
-		log.Printf("WebSocket connection closed for %s", r.RemoteAddr)
+		fmt.Printf("WebSocket connection closed for %s", r.RemoteAddr)
 	}()
 
 	mcServer.SetWebSocket(ws)
@@ -246,22 +257,22 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if err != nil {
-			log.Printf("WebSocket read error from %s: %v", r.RemoteAddr, err)
+			fmt.Printf("WebSocket read error from %s: %v", r.RemoteAddr, err)
 			break
 		}
 		command := HTMXMessage.Command
 		fmt.Println(HTMXMessage)
-		log.Printf("Received message from %s: %s", r.RemoteAddr, command)
+		fmt.Printf("Received message from %s: %s", r.RemoteAddr, command)
 
 		if err := mcServer.SendCommand(command); err != nil {
-			log.Printf("Failed to send command: %v", err)
+			fmt.Printf("Failed to send command: %v", err)
 			ws.WriteMessage(websocket.TextMessage, []byte("Error: "+err.Error()))
 		}
 	}
 }
 
 func StartHandler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Start server request from %s", r.RemoteAddr)
+	fmt.Printf("Start server request from %s", r.RemoteAddr)
 
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -269,7 +280,7 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := mcServer.Start(); err != nil {
-		log.Printf("Failed to start server: %v", err)
+		fmt.Printf("Failed to start server: %v", err)
 		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), http.StatusInternalServerError)
 		return
 	}
@@ -283,14 +294,14 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func StopHandeler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Stop server request from %s", r.RemoteAddr)
+	fmt.Printf("Stop server request from %s", r.RemoteAddr)
 
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 	if err := mcServer.Stop(); err != nil {
-		log.Printf("Failed to stop server: %v", err)
+		fmt.Printf("Failed to stop server: %v", err)
 		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
@@ -303,14 +314,14 @@ func StopHandeler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 func RestartHandeler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Restart server request from %s", r.RemoteAddr)
+	fmt.Printf("Restart server request from %s", r.RemoteAddr)
 
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 	if err := mcServer.Restart(); err != nil {
-		log.Printf("Failed to Restart server: %v", err)
+		fmt.Printf("Failed to Restart server: %v", err)
 		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
