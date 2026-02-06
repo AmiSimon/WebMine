@@ -321,7 +321,7 @@ func RestartHandeler(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := mcServer.Restart(); err != nil {
 		fmt.Printf("\nFailed to Restart server: %v", err)
-		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("\nError: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
 
