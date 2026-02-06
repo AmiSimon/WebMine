@@ -1,0 +1,10 @@
+# App Properties
+[WebAppConfig]
+Port = "8082"
+
+[MinecraftServerConfig]
+PathToMcServer = "../mcserver/"
+MaxAlowedRam = "1024M"
+MinAlowedRam = "1024M"
+ServerJarName = "server.jar"
+OthersCommandArguments = "nogui"

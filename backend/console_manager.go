@@ -12,8 +12,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const PathToMcServer = "../mcserver/"
-
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
@@ -50,17 +48,17 @@ func (mc *McServer) Start() error {
 	mc.mu.Unlock()
 
 	command := "java"
-	arg1 := "-Xmx1024M"
-	arg2 := "-Xms1024M"
+	arg1 := "-Xmx" + SavedAppConfig.MinecraftServerConfig.MaxAlowedRam
+	arg2 := "-Xms" + SavedAppConfig.MinecraftServerConfig.MinAlowedRam
 	arg3 := "-jar"
-	arg4 := "server.jar"
-	arg5 := "nogui"
+	arg4 := SavedAppConfig.MinecraftServerConfig.ServerJarName
+	arg5 := SavedAppConfig.MinecraftServerConfig.OthersCommandArguments
 
 	cmd := exec.Command(command, arg1, arg2, arg3, arg4, arg5)
-	cmd.Dir = PathToMcServer
+	cmd.Dir = SavedAppConfig.MinecraftServerConfig.PathToMcServer
 	mc.cmd = cmd
 
-	fmt.Printf("\nExecuting command: %s %s in directory %s", command, arg1, PathToMcServer)
+	fmt.Printf("\nExecuting command: %s %s in directory %s", command, arg1, SavedAppConfig.MinecraftServerConfig.PathToMcServer)
 
 	// Pipes from cmd
 	stdout, err := mc.cmd.StdoutPipe()

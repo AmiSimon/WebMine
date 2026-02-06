@@ -1,0 +1,45 @@
+<table>
+    <thead>
+        <tr>
+            <th>Settings</th>
+            <th>Value</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td colspan="2"><strong>Minecraft Server Configuration</strong></td>
+        </tr>
+        {{range $key, $value := .MinecraftServerConfig}}
+        <tr>
+            <td style="padding-left: 20px;">{{$key}}</td>
+            <td>
+                <form hx-post="/settings/set" 
+                      hx-trigger="blur from:input[type='text']" 
+                      hx-swap="none">
+                    <input type="hidden" name="setting" value="{{$key}}">
+                    <input type="text" name="value" placeholder="{{$value}}" 
+                           onkeydown="if(event.key === 'Enter') this.blur()">
+                </form>
+            </td>
+        </tr>
+        {{end}}
+        
+        <tr>
+            <td colspan="2"><strong>Web App Configuration</strong></td>
+        </tr>
+        {{range $key, $value := .WebAppConfig}}
+        <tr>
+            <td style="padding-left: 20px;">{{$key}}</td>
+            <td>
+                <form hx-post="/settings/set" 
+                      hx-trigger="blur from:input[type='text']" 
+                      hx-swap="none">
+                    <input type="hidden" name="setting" value="{{$key}}">
+                    <input type="text" name="value" placeholder="{{$value}}" 
+                           onkeydown="if(event.key === 'Enter') this.blur()">
+                </form>
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>

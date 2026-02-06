@@ -14,12 +14,6 @@ import (
 
 var ServerProperties = make(map[string]string)
 
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
-
 func checkStrType(s string, initialValue string) error {
 	if initialValue == "true" || initialValue == "false" {
 		if s != "true" && s != "false" {
@@ -45,11 +39,11 @@ func checkStrType(s string, initialValue string) error {
 	return nil
 }
 
-func ReadFile() {
-	path := PathToMcServer + "server.properties"
+func readServerPropertiesFile() {
+	path := SavedAppConfig.MinecraftServerConfig.PathToMcServer + "server.properties"
 
 	f, err := os.Open(path)
-	check(err)
+	Check(err)
 	defer f.Close()
 
 	properties := make(map[string]string)
@@ -71,16 +65,16 @@ func ReadFile() {
 		}
 	}
 
-	check(scanner.Err())
+	Check(scanner.Err())
 
 	ServerProperties = properties
 
 }
 
-func WriteFile(properties map[string]string, path string) {
+func writeServerPropertiesFile(properties map[string]string, path string) {
 	path = path + "server.properties"
 	f, err := os.Create(path)
-	check(err)
+	Check(err)
 	defer f.Close()
 
 	writer := bufio.NewWriter(f)
@@ -91,11 +85,11 @@ func WriteFile(properties map[string]string, path string) {
 	for key, value := range ServerProperties {
 		line := key + "=" + value + "\n"
 		_, err := writer.WriteString(line)
-		check(err)
+		Check(err)
 	}
 
 	err = writer.Flush()
-	check(err)
+	Check(err)
 }
 
 func ChangePropertiesHandler(w http.ResponseWriter, r *http.Request) {
@@ -122,7 +116,7 @@ func ChangePropertiesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ServerProperties[propertie] = value
-	WriteFile(ServerProperties, PathToMcServer)
+	writeServerPropertiesFile(ServerProperties, SavedAppConfig.MinecraftServerConfig.PathToMcServer)
 	http.Redirect(w, r, "/properties/view", http.StatusSeeOther)
 }
 
@@ -130,7 +124,7 @@ var propertiesTemplate = template.Must(template.New("properties.html").ParseFile
 
 func PropertiesTableHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	ReadFile()
+	readServerPropertiesFile()
 
 	propertiesTemplate.ExecuteTemplate(w, "properties.html", ServerProperties)
 }
