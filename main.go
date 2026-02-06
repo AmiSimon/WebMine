@@ -22,5 +22,5 @@ func main() {
 	// main website handeler
 	http.Handle("/", http.FileServer(http.Dir("frontend/static")))
 	fmt.Println("Server listening on :8082")
-	fmt.Fatal(http.ListenAndServe(":8082", nil))
+	log.Fatal(http.ListenAndServe(":8082", nil))
 }
