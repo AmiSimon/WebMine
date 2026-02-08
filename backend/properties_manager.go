@@ -95,27 +95,28 @@ func writeServerPropertiesFile(properties map[string]string, path string) {
 func ChangePropertiesHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
-	propertie := r.FormValue("propertie")
+	property := r.FormValue("property")
 	value := r.FormValue("value")
+	jsonEncoder := json.NewEncoder(w)
 
-	if propertie == "" || value == "" {
+	if property == "" || value == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{
-			"error": "missing propertie or value",
+		jsonEncoder.Encode(map[string]string{
+			"error": "missing property or value",
 		})
 		return
 	}
 
-	err := checkStrType(value, ServerProperties[propertie])
+	err := checkStrType(value, ServerProperties[property])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{
+		jsonEncoder.Encode(map[string]string{
 			"error": err.Error(),
 		})
 		return
 	}
 
-	ServerProperties[propertie] = value
+	ServerProperties[property] = value
 	writeServerPropertiesFile(ServerProperties, SavedAppConfig.MinecraftServerConfig.PathToMcServer)
 	http.Redirect(w, r, "/properties/view", http.StatusSeeOther)
 }
