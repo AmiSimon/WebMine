@@ -2,7 +2,6 @@ package backend
 
 import (
 	"bufio"
-	"encoding/json"
 	"errors"
 	"html/template"
 	"net/http"
@@ -17,21 +16,21 @@ var ServerProperties = make(map[string]string)
 func checkStrType(s string, initialValue string) error {
 	if initialValue == "true" || initialValue == "false" {
 		if s != "true" && s != "false" {
-			return errors.New("String value should be Bool like type")
+			return errors.New("Value should be boolean like type")
 		}
 		return nil
 	}
 
 	if _, err := strconv.Atoi(initialValue); err == nil {
 		if _, err := strconv.Atoi(s); err != nil {
-			return errors.New("String value should be Int like type")
+			return errors.New("Value should be an integer like type")
 		}
 		return nil
 	}
 
 	if _, err := strconv.ParseFloat(initialValue, 64); err == nil {
 		if _, err := strconv.ParseFloat(s, 64); err != nil {
-			return errors.New("String value should be Float like type")
+			return errors.New("Value should be a float like type")
 		}
 		return nil
 	}
@@ -39,7 +38,7 @@ func checkStrType(s string, initialValue string) error {
 	return nil
 }
 
-func readServerPropertiesFile() {
+func readServerPropertiesFile() map[string]string {
 	path := SavedAppConfig.MinecraftServerConfig.PathToMcServer + "server.properties"
 
 	f, err := os.Open(path)
@@ -67,14 +66,16 @@ func readServerPropertiesFile() {
 
 	Check(scanner.Err())
 
-	ServerProperties = properties
+	return properties
 
 }
 
-func writeServerPropertiesFile(properties map[string]string, path string) {
+func writeServerPropertiesFile(properties map[string]string, path string) error {
 	path = path + "server.properties"
 	f, err := os.Create(path)
-	Check(err)
+	if err != nil {
+		return err
+	}
 	defer f.Close()
 
 	writer := bufio.NewWriter(f)
@@ -82,14 +83,16 @@ func writeServerPropertiesFile(properties map[string]string, path string) {
 	writer.WriteString("#Minecraft server properties\n")
 	writer.WriteString("#" + time.Now().Format(time.UnixDate) + "\n")
 
-	for key, value := range ServerProperties {
+	for key, value := range properties {
 		line := key + "=" + value + "\n"
 		_, err := writer.WriteString(line)
-		Check(err)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = writer.Flush()
-	Check(err)
+	return err
 }
 
 func ChangePropertiesHandler(w http.ResponseWriter, r *http.Request) {
@@ -97,22 +100,15 @@ func ChangePropertiesHandler(w http.ResponseWriter, r *http.Request) {
 
 	property := r.FormValue("property")
 	value := r.FormValue("value")
-	jsonEncoder := json.NewEncoder(w)
 
-	if property == "" || value == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		jsonEncoder.Encode(map[string]string{
-			"error": "missing property or value",
-		})
+	if property == "" {
+		HtmlDetailedError(w, errors.New("Missing property name"))
 		return
 	}
 
 	err := checkStrType(value, ServerProperties[property])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		jsonEncoder.Encode(map[string]string{
-			"error": err.Error(),
-		})
+		HtmlDetailedError(w, err)
 		return
 	}
 
@@ -125,7 +121,7 @@ var propertiesTemplate = template.Must(template.New("properties.html").ParseFile
 
 func PropertiesTableHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	readServerPropertiesFile()
+	ServerProperties = readServerPropertiesFile()
 
 	propertiesTemplate.ExecuteTemplate(w, "properties.html", ServerProperties)
 }
