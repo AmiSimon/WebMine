@@ -1,17 +1,16 @@
-<button hx-post="/console/start" hx-swap="none">START SERVER</button>
-<button hx-post="/console/restart" hx-swap="none">RESTART SERVER</button>
-<button hx-post="/console/stop" hx-swap="none">STOP SERVER</button>
+<button hx-post="/console/start" hx-swap="none" class="btn">START SERVER</button>
+<button hx-post="/console/restart" hx-swap="none" class="btn">RESTART SERVER</button>
+<button hx-post="/console/stop" hx-swap="none" class="btn">STOP SERVER</button>
+
 <div hx-ext="ws" ws-connect="/console/ws">
     <h1>Minecraft Server Console</h1>
 
-    <form ws-send>
-        <input type="text" name="command" placeholder="Enter Minecraft command">
-        <button type="submit">Send Command</button>
-    </form>
-
     <h2>Server Output:</h2>
     <div class="mockup-code w-full" id="console">
-
+        <form ws-send>
+            <input type="text" name="command" placeholder="Enter Minecraft command" class="input input-md w-full">
+            <button type="submit" class="btn btn-md">Send Command</button>
+        </form>
     </div>
 </div>
 <script>
