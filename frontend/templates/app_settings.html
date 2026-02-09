@@ -9,16 +9,40 @@
         <tr>
             <td colspan="2"><strong>Minecraft Server Configuration</strong></td>
         </tr>
-        {{range $key, $value := .MinecraftServerConfig}}
+        {{range $key, $data := .MinecraftServerConfig}}
         <tr>
-            <td style="padding-left: 20px;">{{$key}}</td>
+            <td>{{$key}}</td>
             <td>
                 <form hx-post="/settings/set" 
                       hx-trigger="blur from:input[type='text']" 
                       hx-swap="none">
-                    <input type="hidden" name="setting" value="{{$key}}">
-                    <input type="text" name="value" placeholder="{{$value}}" 
+                    {{if eq $data.type "bool"}}
+                    <select name="value"
+                            hx-post="/properties/set" 
+                            hx-include="previous input[name='propertie']" 
+                            hx-trigger="change">
+                        <option value="true" {{if eq $data.value "true"}}selected{{end}}>true</option>
+                        <option value="false" {{if eq $data.value "false"}}selected{{end}}>false</option>
+                    </select>
+                    {{else if eq $data.type "int"}}
+                    <input type="number" name="value" value="{{$data.value}}" step="1"
+                           hx-post="/properties/set" 
+                           hx-include="previous input[name='propertie']" 
+                           hx-trigger="blur"
                            onkeydown="if(event.key === 'Enter') this.blur()">
+                    {{else if eq $data.type "float"}}
+                    <input type="number" name="value" value="{{$data.value}}" step="0.01"
+                           hx-post="/properties/set" 
+                           hx-include="previous input[name='propertie']" 
+                           hx-trigger="blur"
+                           onkeydown="if(event.key === 'Enter') this.blur()">
+                    {{else}}
+                    <input type="text" name="value" placeholder="{{$data.value}}" value="{{$data.value}}"
+                           hx-post="/properties/set" 
+                           hx-include="previous input[name='propertie']" 
+                           hx-trigger="blur"
+                           onkeydown="if(event.key === 'Enter') this.blur()">
+                    {{end}}
                 </form>
             </td>
         </tr>
@@ -27,16 +51,40 @@
         <tr>
             <td colspan="2"><strong>Web App Configuration</strong></td>
         </tr>
-        {{range $key, $value := .WebAppConfig}}
+        {{range $key, $data := .WebAppConfig}}
         <tr>
             <td style="padding-left: 20px;">{{$key}}</td>
             <td>
                 <form hx-post="/settings/set" 
                       hx-trigger="blur from:input[type='text']" 
                       hx-swap="none">
-                    <input type="hidden" name="setting" value="{{$key}}">
-                    <input type="text" name="value" placeholder="{{$value}}" 
+                    {{if eq $data.type "bool"}}
+                    <select name="value"
+                            hx-post="/properties/set" 
+                            hx-include="previous input[name='propertie']" 
+                            hx-trigger="change">
+                        <option value="true" {{if eq $data.value "true"}}selected{{end}}>true</option>
+                        <option value="false" {{if eq $data.value "false"}}selected{{end}}>false</option>
+                    </select>
+                    {{else if eq $data.type "int"}}
+                    <input type="number" name="value" value="{{$data.value}}" step="1"
+                           hx-post="/properties/set" 
+                           hx-include="previous input[name='propertie']" 
+                           hx-trigger="blur"
                            onkeydown="if(event.key === 'Enter') this.blur()">
+                    {{else if eq $data.type "float"}}
+                    <input type="number" name="value" value="{{$data.value}}" step="0.01"
+                           hx-post="/properties/set" 
+                           hx-include="previous input[name='propertie']" 
+                           hx-trigger="blur"
+                           onkeydown="if(event.key === 'Enter') this.blur()">
+                    {{else}}
+                    <input type="text" name="value" placeholder="{{$data.value}}" value="{{$data.value}}"
+                           hx-post="/properties/set" 
+                           hx-include="previous input[name='propertie']" 
+                           hx-trigger="blur"
+                           onkeydown="if(event.key === 'Enter') this.blur()">
+                    {{end}}
                 </form>
             </td>
         </tr>

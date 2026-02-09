@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"encoding/json"
 	"html/template"
 	"net/http"
 	"os"
@@ -35,15 +34,18 @@ func Check(e error) {
 	}
 }
 
-func structToMap(s interface{}) map[string]string {
-	result := make(map[string]string)
+func structToMap(s interface{}) map[string]map[string]string {
+	result := make(map[string]map[string]string)
 	v := reflect.ValueOf(s)
 	t := reflect.TypeOf(s)
 
 	for i := 0; i < v.NumField(); i++ {
 		field := t.Field(i)
-		value := v.Field(i)
-		result[field.Name] = value.String()
+		value := v.Field(i).String()
+		result[field.Name] = map[string]string{
+			"value": value,
+			"type":  GetPropertyType(value),
+		}
 	}
 
 	return result
@@ -67,13 +69,6 @@ func ChangeAppSettingsHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	setting := r.FormValue("setting")
 	value := r.FormValue("value")
-	if setting == "" || value == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{
-			"error": "missing propertie or value",
-		})
-		return
-	}
 
 	updated := false
 
@@ -103,14 +98,6 @@ func ChangeAppSettingsHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-	}
-
-	if !updated {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{
-			"error": "invalid setting name",
-		})
-		return
 	}
 
 	EncodeConfig()

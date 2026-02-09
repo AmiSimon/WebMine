@@ -14,26 +14,35 @@ import (
 
 var ServerProperties = make(map[string]string)
 
+func GetPropertyType(value string) string {
+	if value == "true" || value == "false" {
+		return "bool"
+	}
+	if _, err := strconv.Atoi(value); err == nil {
+		return "int"
+	}
+	if _, err := strconv.ParseFloat(value, 64); err == nil {
+		return "float"
+	}
+	return "string"
+}
+
 func checkStrType(s string, initialValue string) error {
-	if initialValue == "true" || initialValue == "false" {
+	expectedType := GetPropertyType(initialValue)
+
+	switch expectedType {
+	case "bool":
 		if s != "true" && s != "false" {
 			return errors.New("String value should be Bool like type")
 		}
-		return nil
-	}
-
-	if _, err := strconv.Atoi(initialValue); err == nil {
+	case "int":
 		if _, err := strconv.Atoi(s); err != nil {
 			return errors.New("String value should be Int like type")
 		}
-		return nil
-	}
-
-	if _, err := strconv.ParseFloat(initialValue, 64); err == nil {
+	case "float":
 		if _, err := strconv.ParseFloat(s, 64); err != nil {
 			return errors.New("String value should be Float like type")
 		}
-		return nil
 	}
 
 	return nil
@@ -127,5 +136,13 @@ func PropertiesTableHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	readServerPropertiesFile()
 
-	propertiesTemplate.ExecuteTemplate(w, "properties.html", ServerProperties)
+	properties := make(map[string]map[string]string)
+	for key, value := range ServerProperties {
+		properties[key] = map[string]string{
+			"value": value,
+			"type":  GetPropertyType(value),
+		}
+	}
+
+	propertiesTemplate.ExecuteTemplate(w, "properties.html", properties)
 }
