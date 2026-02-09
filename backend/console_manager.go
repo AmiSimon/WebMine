@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
 	"os/exec"
 	"sync"
@@ -48,8 +47,8 @@ func (mc *McServer) Start() error {
 	mc.mu.Unlock()
 
 	command := "java"
-	arg1 := "-Xmx" + SavedAppConfig.MinecraftServerConfig.MaxAlowedRam
-	arg2 := "-Xms" + SavedAppConfig.MinecraftServerConfig.MinAlowedRam
+	arg1 := "-Xmx" + SavedAppConfig.MinecraftServerConfig.MaxAllowedRam
+	arg2 := "-Xms" + SavedAppConfig.MinecraftServerConfig.MinAllowedRam
 	arg3 := "-jar"
 	arg4 := SavedAppConfig.MinecraftServerConfig.ServerJarName
 	arg5 := SavedAppConfig.MinecraftServerConfig.OthersCommandArguments
@@ -290,7 +289,7 @@ func StartHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func StopHandeler(w http.ResponseWriter, r *http.Request) {
+func StopHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("\nStop server request from %s", r.RemoteAddr)
 
 	if r.Method != http.MethodPost {
@@ -310,7 +309,7 @@ func StopHandeler(w http.ResponseWriter, r *http.Request) {
 		"message": "Stop command sent to Minecraft server",
 	})
 }
-func RestartHandeler(w http.ResponseWriter, r *http.Request) {
+func RestartHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("\nRestart server request from %s", r.RemoteAddr)
 
 	if r.Method != http.MethodPost {
@@ -331,8 +330,6 @@ func RestartHandeler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-var consoleTemplate = template.Must(template.New("console.html").ParseFiles("./frontend/templates/console.html"))
-
-func ConsoleHandeler(w http.ResponseWriter, r *http.Request) {
-	consoleTemplate.Execute(w, nil)
+func ConsoleHandler(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/templates/console.html", http.StatusSeeOther)
 }

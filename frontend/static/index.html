@@ -4,14 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebMine</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js"></script>
 </head>
 <body>
-    <!--templates-->
-    <div hx-trigger="load" hx-target="#main_panel" id="main_panel" hx-get="/console/view"></div>
-    <div hx-trigger="load" hx-target="#server_properties" id="server_properties" hx-get="/properties/view"></div>
-    <div hx-trigger="load" hx-target="#app_settings" id="app_settings" hx-get="/settings/view"></div>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js"></script>
+    <div id="page" hx-get="/current_page" hx-swap="innerHTML" hx-trigger="load" hx-target="#page">
+
+    </div>
 </body>
 </html>

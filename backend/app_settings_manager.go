@@ -20,8 +20,8 @@ type WebAppConfig struct {
 
 type MinecraftServerConfig struct {
 	PathToMcServer         string
-	MaxAlowedRam           string
-	MinAlowedRam           string
+	MaxAllowedRam           string
+	MinAllowedRam           string
 	ServerJarName          string
 	OthersCommandArguments string
 }
