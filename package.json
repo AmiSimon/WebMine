@@ -1,0 +1,11 @@
+{
+  "dependencies": {},
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.18",
+    "daisyui": "^5.5.18",
+    "tailwindcss": "^4.1.18"
+  },
+  "scripts": {
+      "build:css": "bunx @tailwindcss/cli -i app.css -o frontend/static/output.css"
+  }
+}
