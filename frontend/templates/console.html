@@ -3,24 +3,25 @@
 <button hx-post="/console/stop" hx-swap="none">STOP SERVER</button>
 <div hx-ext="ws" ws-connect="/console/ws">
     <h1>Minecraft Server Console</h1>
-    
+
     <form ws-send>
         <input type="text" name="command" placeholder="Enter Minecraft command">
         <button type="submit">Send Command</button>
     </form>
-    
+
     <h2>Server Output:</h2>
-    <div id="console">
-        
+    <div class="mockup-code w-full" id="console">
+
     </div>
 </div>
-
 <script>
     document.body.addEventListener('htmx:wsAfterMessage', function(event) {
-        const console = document.getElementById('console');
-        const message = document.createElement('pre');
-        message.textContent = event.detail.message;
-        console.appendChild(message);
-        console.scrollTop = console.scrollHeight;
+        const consoleDiv = document.getElementById('console');
+        const pre = document.createElement('pre');
+        const code = document.createElement('code');
+        code.textContent = event.detail.message;
+        pre.appendChild(code);
+        consoleDiv.appendChild(pre);
+        consoleDiv.scrollTop = consoleDiv.scrollHeight;
     });
 </script>

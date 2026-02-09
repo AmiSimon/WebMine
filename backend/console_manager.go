@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"net/http"
 	"os/exec"
 	"sync"
@@ -33,7 +34,7 @@ type HTMXMessage struct {
 }
 
 func (mc *McServer) Start() error {
-	fmt.Println("Attempting to start Minecraft server")
+	fmt.Println("\nAttempting to start Minecraft server")
 	mc.mu.Lock()
 	if mc.active {
 		mc.mu.Unlock()
@@ -57,7 +58,7 @@ func (mc *McServer) Start() error {
 	cmd.Dir = SavedAppConfig.MinecraftServerConfig.PathToMcServer
 	mc.cmd = cmd
 
-	fmt.Printf("\nExecuting command: %s %s in directory %s", command, arg1, SavedAppConfig.MinecraftServerConfig.PathToMcServer)
+	fmt.Printf("\nExecuting command: %s %s %s %s in directory %s", command, arg1, arg2, arg3, SavedAppConfig.MinecraftServerConfig.PathToMcServer)
 
 	// Pipes from cmd
 	stdout, err := mc.cmd.StdoutPipe()
@@ -247,16 +248,18 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		_, message, err := ws.ReadMessage()
-		var HTMXMessage HTMXMessage
-		jsonErr := json.Unmarshal([]byte(message), &HTMXMessage)
-		if jsonErr != nil {
-			fmt.Println("Error decoding JSON:", err)
-			return
-		}
 		if err != nil {
 			fmt.Printf("\nWebSocket read error from %s: %v", r.RemoteAddr, err)
 			break
 		}
+
+		var HTMXMessage HTMXMessage
+		jsonErr := json.Unmarshal(message, &HTMXMessage)
+		if jsonErr != nil {
+			fmt.Printf("\nError decoding JSON from %s: %v", r.RemoteAddr, jsonErr)
+			continue // Skip this message and continue listening
+		}
+
 		command := HTMXMessage.Command
 		fmt.Printf("\nReceived message from %s: %s", r.RemoteAddr, command)
 
@@ -330,6 +333,8 @@ func RestartHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+var consoleTemplate = template.Must(template.New("console.html").ParseFiles("./frontend/templates/console.html"))
+
 func ConsoleHandler(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/templates/console.html", http.StatusSeeOther)
+	consoleTemplate.ExecuteTemplate(w, "console.html", nil)
 }
