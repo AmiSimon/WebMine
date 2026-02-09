@@ -1,7 +1,7 @@
 [MinecraftServerConfig]
   PathToMcServer = "../mcserver/"
-  MaxAllowedRam = ""
-  MinAllowedRam = ""
+  MaxAllowedRam = "1024M"
+  MinAllowedRam = "1024M"
   ServerJarName = "server.jar"
   OthersCommandArguments = "nogui"
 

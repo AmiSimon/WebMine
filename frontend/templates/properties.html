@@ -10,12 +10,12 @@
         <tr>
             <td>{{$key}}</td>
             <td>
-                <input type="hidden" name="propertie" value="{{$key}}">
+                <input type="hidden" name="property" value="{{$key}}">
                 
                 {{if eq $data.type "bool"}}
                     <select name="value"
                             hx-post="/properties/set" 
-                            hx-include="previous input[name='propertie']" 
+                            hx-include="previous input[name='property']" 
                             hx-trigger="change">
                         <option value="true" {{if eq $data.value "true"}}selected{{end}}>true</option>
                         <option value="false" {{if eq $data.value "false"}}selected{{end}}>false</option>
@@ -23,19 +23,19 @@
                 {{else if eq $data.type "int"}}
                     <input type="number" name="value" value="{{$data.value}}" step="1"
                            hx-post="/properties/set" 
-                           hx-include="previous input[name='propertie']" 
+                           hx-include="previous input[name='property']" 
                            hx-trigger="blur"
                            onkeydown="if(event.key === 'Enter') this.blur()">
                 {{else if eq $data.type "float"}}
                     <input type="number" name="value" value="{{$data.value}}" step="0.01"
                            hx-post="/properties/set" 
-                           hx-include="previous input[name='propertie']" 
+                           hx-include="previous input[name='property']" 
                            hx-trigger="blur"
                            onkeydown="if(event.key === 'Enter') this.blur()">
                 {{else if eq $key "difficulty"}}
                     <select name="value"
                             hx-post="/properties/set" 
-                            hx-include="previous input[name='propertie']" 
+                            hx-include="previous input[name='property']" 
                             hx-trigger="change">
                         <option value="peaceful" {{if eq $data.value "peaceful"}}selected{{end}}>peaceful</option>
                         <option value="easy" {{if eq $data.value "easy"}}selected{{end}}>easy</option>
@@ -45,7 +45,7 @@
                 {{else if eq $key "gamemode"}}
                     <select name="value"
                             hx-post="/properties/set" 
-                            hx-include="previous input[name='propertie']" 
+                            hx-include="previous input[name='property']" 
                             hx-trigger="change">
                         <option value="survival" {{if eq $data.value "survival"}}selected{{end}}>survival</option>
                         <option value="spectator" {{if eq $data.value "spectator"}}selected{{end}}>spectator</option>
@@ -55,7 +55,7 @@
                 {{else}}
                     <input type="text" name="value" placeholder="{{$data.value}}" value="{{$data.value}}"
                            hx-post="/properties/set" 
-                           hx-include="previous input[name='propertie']" 
+                           hx-include="previous input[name='property']" 
                            hx-trigger="blur"
                            onkeydown="if(event.key === 'Enter') this.blur()">
                 {{end}}
