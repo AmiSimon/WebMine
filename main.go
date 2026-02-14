@@ -41,6 +41,7 @@ func main() {
 	//Charts Handelers
 	http.HandleFunc("/chart/cpu", backend.CpuLineHandler)
 	http.HandleFunc("/chart/ram", backend.RamLineHandler)
+	http.HandleFunc("/chart/players", backend.PlayerLineHandler)
 
 	port := ":"+backend.SavedAppConfig.WebAppConfig.Port
 
